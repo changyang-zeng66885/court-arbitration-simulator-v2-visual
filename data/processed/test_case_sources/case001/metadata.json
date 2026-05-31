@@ -1,0 +1,45 @@
+{
+  "case_id": "case001",
+  "title": "SG Commodities v. FGHK",
+  "case_number": "Case No. M20220966",
+  "pdf_name": "sg-commodities-v-fghk.pdf",
+  "page_count": 42,
+  "char_count": 152992,
+  "pdf_sha256": "4b16d34c4a102578959ea2a4930f08bed2887c2b02ee5cb4f030ec588c72720d",
+  "text_sha256": "6318ef733fcbe76228e032278cad694557d379ab25ef7906b61ea47b9fd25954",
+  "source_rows": [
+    2,
+    3
+  ],
+  "urls": [
+    "https://jusmundi.com/en/document/decision/en-singapore-commodities-group-co-pte-ltd-v-founder-group-hong-kong-ltd-judgment-of-the-court-of-appeal-of-singapore-2026-sgca-24-friday-8th-may-2026?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den",
+    "https://jusmundi.com/en/document/decision/en-singapore-commodities-group-co-pte-ltd-v-founder-group-hong-kong-ltd-judgment-of-the-court-of-appeal-of-singapore-2026-sgca-24-friday-8th-may-2026#pa_3103089"
+  ],
+  "metadata": {
+    "案件标题 (Case Title)": "SG Commodities v. FGHK",
+    "案号 (Case Number)": "Case No. M20220966",
+    "程序性质 (Nature)": "International",
+    "案件类型 (Type)": "Commercial Arbitration",
+    "行业 (Industries)": "Trade",
+    "引入日期 (Date of Introduction)": "12 Apr 2022",
+    "案件状态 (Status)": "Concluded",
+    "申请人国籍 (Claimant)": "Singapore",
+    "被申请人国籍 (Respondent)": "Hong Kong SAR China",
+    "仲裁机构 (Institution)": "CIETAC (China International Economic and Trade Arbitration Commission)",
+    "仲裁规则 (Rules)": "CIETAC Arbitration Rules 2015",
+    "仲裁地 (Seat)": "Beijing",
+    "适用法律 (Applicable Law)": "China",
+    "案件文档 (Documents)": "Judgment of the High Court of Singapore [2023] SGHC 159 - 29 May 2023",
+    "更新日期 (Updated On)": "20 May 2026",
+    "PDF 字符数": "152911",
+    "PDF 页数": "42",
+    "PDF 保存路径": "C:\\Users\\micky\\Desktop\\demoproject\\grab\\output\\pdfs\\sg-commodities-v-fghk.pdf",
+    "案例 URL": "https://jusmundi.com/en/document/decision/en-singapore-commodities-group-co-pte-ltd-v-founder-group-hong-kong-ltd-judgment-of-the-court-of-appeal-of-singapore-2026-sgca-24-friday-8th-may-2026?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den",
+    "local_pdf_path": "C:\\Users\\micky\\Desktop\\demoproject\\grab\\output\\pdfs\\sg-commodities-v-fghk.pdf",
+    "source_pdf_name": "sg-commodities-v-fghk.pdf",
+    "source_rows": "2, 3",
+    "deduplicated_row_count": "2",
+    "case_urls": "https://jusmundi.com/en/document/decision/en-singapore-commodities-group-co-pte-ltd-v-founder-group-hong-kong-ltd-judgment-of-the-court-of-appeal-of-singapore-2026-sgca-24-friday-8th-may-2026?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den\nhttps://jusmundi.com/en/document/decision/en-singapore-commodities-group-co-pte-ltd-v-founder-group-hong-kong-ltd-judgment-of-the-court-of-appeal-of-singapore-2026-sgca-24-friday-8th-may-2026#pa_3103089",
+    "case_documents": "Judgment of the High Court of Singapore [2023] SGHC 159 - 29 May 2023"
+  }
+}

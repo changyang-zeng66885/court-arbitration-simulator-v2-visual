@@ -1,0 +1,16 @@
+{
+  "rag_case_ids": [
+    "case003",
+    "case004",
+    "case005",
+    "case007",
+    "case008",
+    "case009"
+  ],
+  "test_case_ids": [
+    "case001",
+    "case002",
+    "case006"
+  ],
+  "leakage_policy": "No case_id, PDF hash, or extracted-text hash may appear in both splits."
+}

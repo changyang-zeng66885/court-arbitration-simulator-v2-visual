@@ -1,0 +1,43 @@
+{
+  "case_id": "case005",
+  "title": "Claimant v. Respondent",
+  "case_number": "（2013）京仲裁字第0149号",
+  "pdf_name": "claimant-v-respondent.pdf",
+  "page_count": 10,
+  "char_count": 12913,
+  "pdf_sha256": "17b71f65aeb58917c77392d4eabb3d328504ce04950672a628aae0785087a5af",
+  "text_sha256": "a24649c14b3df3989ba6fc486b5fd5d23c3ddfaea40ce0f7e982d8fd735df97e",
+  "source_rows": [
+    9,
+    10
+  ],
+  "urls": [
+    "https://jusmundi.com/en/document/decision/zh-claimant-v-respondent-bei-jing-zhong-cai-wei-yuan-hui-cai-jue-shu-2013-jing-zhong-cai-zi-di-0149hao-monday-25th-march-2013?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den",
+    "https://jusmundi.com/en/document/decision/en-claimant-v-respondent-award-2013-0149-monday-25th-march-2013#pa_1924571"
+  ],
+  "metadata": {
+    "案件标题 (Case Title)": "Claimant v. Respondent",
+    "案号 (Case Number)": "（2013）京仲裁字第0149号",
+    "程序性质 (Nature)": "International",
+    "案件类型 (Type)": "Commercial Arbitration",
+    "引入日期 (Date of Introduction)": "8 Nov 2012",
+    "案件状态 (Status)": "Concluded",
+    "申请人国籍 (Claimant)": "United States",
+    "被申请人国籍 (Respondent)": "China",
+    "仲裁机构 (Institution)": "BAC/BIAC (Beijing Arbitration Commission/Beijing International Arbitration Court)",
+    "仲裁规则 (Rules)": "BAC/BIAC Arbitration Rules 2008",
+    "适用法律 (Applicable Law)": "China",
+    "案件文档 (Documents)": "Award (2013) 0149 - 25 Mar 2013",
+    "更新日期 (Updated On)": "31 July 2025",
+    "PDF 字符数": "12896",
+    "PDF 页数": "10",
+    "PDF 保存路径": "C:\\Users\\micky\\Desktop\\demoproject\\grab\\output\\pdfs\\claimant-v-respondent.pdf",
+    "案例 URL": "https://jusmundi.com/en/document/decision/zh-claimant-v-respondent-bei-jing-zhong-cai-wei-yuan-hui-cai-jue-shu-2013-jing-zhong-cai-zi-di-0149hao-monday-25th-march-2013?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den",
+    "local_pdf_path": "C:\\Users\\micky\\Desktop\\demoproject\\grab\\output\\pdfs\\claimant-v-respondent.pdf",
+    "source_pdf_name": "claimant-v-respondent.pdf",
+    "source_rows": "9, 10",
+    "deduplicated_row_count": "2",
+    "case_urls": "https://jusmundi.com/en/document/decision/zh-claimant-v-respondent-bei-jing-zhong-cai-wei-yuan-hui-cai-jue-shu-2013-jing-zhong-cai-zi-di-0149hao-monday-25th-march-2013?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den\nhttps://jusmundi.com/en/document/decision/en-claimant-v-respondent-award-2013-0149-monday-25th-march-2013#pa_1924571",
+    "case_documents": "Award (2013) 0149 - 25 Mar 2013"
+  }
+}

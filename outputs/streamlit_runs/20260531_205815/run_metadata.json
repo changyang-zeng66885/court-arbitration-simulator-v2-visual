@@ -1,0 +1,10 @@
+{
+  "case_doc": "C:\\Users\\micky\\Desktop\\demoproject\\court-arbitration-simulator-v2-visual\\outputs\\streamlit_runs\\20260531_205815\\uploaded_case\\main.md",
+  "law": "中国大陆法律",
+  "rule_choice": "自动识别",
+  "effective_rules": [
+    "中国国际经济贸易仲裁委员会-仲裁规则.pdf"
+  ],
+  "dry_run": false,
+  "events_path": "C:\\Users\\micky\\Desktop\\demoproject\\court-arbitration-simulator-v2-visual\\outputs\\streamlit_runs\\20260531_205815\\events.jsonl"
+}

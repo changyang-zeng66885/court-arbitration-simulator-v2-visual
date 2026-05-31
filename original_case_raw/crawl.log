@@ -1,0 +1,199 @@
+17:56:25 [INFO] ============================================================
+17:56:25 [INFO] JusMundi 案例爬虫启动
+17:56:25 [INFO] 搜索 URL: https://jusmundi.com/en/search?case_applicable-law=1073&case_arbitration-rule=1050674,1050669,1050573&document-types=case&lang=en
+17:56:25 [INFO] 目标页数: 1 页 / 20 个案例
+17:56:25 [INFO] 浏览器模式: 有头
+17:56:25 [INFO] 浏览器: Edge
+17:56:25 [INFO] ============================================================
+17:56:25 [INFO] 
+[Step 1] 爬取搜索页...
+17:56:25 [INFO] 开始爬取 JusMundi 搜索页, 目标收集 20 个案例...
+17:56:25 [INFO] 搜索 URL: https://jusmundi.com/en/search?case_applicable-law=1073&case_arbitration-rule=1050674,1050669,1050573&document-types=case&lang=en
+17:56:25 [INFO] 浏览器: Edge (有头)
+17:56:25 [INFO] ====== WebDriver manager ======
+17:56:25 [INFO] Driver [C:\Users\micky\.wdm\drivers\edgedriver\win64\148.0.3967.96\msedgedriver.exe] found in cache by browser version
+17:56:27 [INFO] 正在打开搜索页...
+17:56:35 [INFO] 页面源代码已保存: C:\Users\micky\Desktop\demoproject\grab\output\search_page_initial.html
+17:56:35 [INFO] 页面文本已保存: C:\Users\micky\Desktop\demoproject\grab\output\search_page_text.txt
+17:56:35 [INFO]   [1/20] https://jusmundi.com/en/document/skeleton/?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:56:35 [INFO] 滚动第 1 次 (当前 1 个)...
+17:56:56 [INFO]   [2/20] https://jusmundi.com/en/document/decision/en-singapore-commodities-group-co-pte-ltd-v-founder-group-hong-kong-ltd-judgment-of-the-court-of-appeal-of-singapore-2026-sgca-24-friday-8th-may-2026?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:56:56 [INFO]   [3/20] https://jusmundi.com/en/document/decision/en-singapore-commodities-group-co-pte-ltd-v-founder-group-hong-kong-ltd-judgment-of-the-court-of-appeal-of-singapore-2026-sgca-24-friday-8th-may-2026#pa_3103089
+17:56:56 [INFO]   [4/20] https://jusmundi.com/en/document/decision/zh-daqing-mao-v-beijing-hongkun-weiye-real-estate-development-co-ltd-and-bin-zhao-bei-jing-shi-di-si-zhong-ji-min-fa-yuan-min-shi-cai-ding-shu-2023-jing-04min-te-645hao-wednesday-9th-august-2023?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:56:56 [INFO]   [5/20] https://jusmundi.com/en/document/decision/en-daqing-mao-v-beijing-hongkun-weiye-real-estate-development-co-ltd-and-bin-zhao-civil-ruling-of-the-fourth-intermediate-peoples-court-of-beijing-municipality-2023-jing-04-minte-645-wednesday-9th-august-2023#pa_1965778
+17:56:56 [INFO]   [6/20] https://jusmundi.com/en/document/decision/zh-hainan-daye-industrial-co-ltd-v-radisson-hotel-management-shanghai-co-ltd-and-radisson-hotels-asia-pacific-investments-pte-ltd-bei-jing-shi-di-si-zhong-ji-min-fa-yuan-min-shi-cai-ding-shu-2023-jing-04min-te-98hao-monday-19th-june-2023?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:56:56 [INFO]   [7/20] https://jusmundi.com/en/document/decision/en-hainan-daye-industrial-co-ltd-v-radisson-hotel-management-shanghai-co-ltd-and-radisson-hotels-asia-pacific-investments-pte-ltd-civil-ruling-of-the-fourth-intermediate-peoples-court-of-beijing-municipality-2023-jing-04-minte-98-monday-19th-june-2023#pa_1895366
+17:56:56 [INFO]   [8/20] https://jusmundi.com/en/document/decision/en-tianjin-wendu-education-technology-co-ltd-and-peng-wu-v-xiaoping-feng-award-2022-2333-tuesday-11th-october-2022?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:56:56 [INFO]   [9/20] https://jusmundi.com/en/document/decision/en-yuan-jing-v-shuogang-chen-order-of-united-states-district-court-central-district-of-californiagranting-petitioner-s-second-amended-petition-to-confirm-arbitration-and-for-entry-of-judgment-dkt-25-and-granting-leave-to-file-declaration-one-day-late-dkt-26-friday-18th-july-2025?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:56:56 [INFO]   [10/20] https://jusmundi.com/en/document/decision/zh-liao-yang-hong-wei-wu-sun-jian-ce-gong-cheng-you-xian-gong-si-yu-zhong-hai-you-hui-zhou-shi-hua-you-xian-gong-si-zhong-cai-an-bei-jing-shi-di-si-zhong-ji-ren-min-fa-yuan-min-shi-cai-ding-shu-2023-jing-04min-te-188hao-thursday-6th-april-2023?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:56:56 [INFO]   [11/20] https://jusmundi.com/en/document/decision/en-liaoyang-hongwei-nondestructive-testing-engineering-co-ltd-v-cnooc-huizhou-petrochemical-co-ltd-civil-ruling-of-the-fourth-intermediate-peoples-court-of-beijing-municipality-2023-jing-04-minte-188-thursday-6th-april-2023#pa_1878276
+17:56:56 [INFO]   [12/20] https://jusmundi.com/en/document/decision/en-claimant-1-and-claimant-2-v-respondent-1and-respondent-2-decision-of-the-emergency-arbitrator-friday-29th-september-2017?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:56:56 [INFO]   [13/20] https://jusmundi.com/en/document/decision/en-claimant-1-and-claimant-2-v-respondent-1and-respondent-2-decision-of-the-emergency-arbitrator-friday-29th-september-2017#pa_1842278
+17:56:56 [INFO]   [14/20] https://jusmundi.com/en/document/decision/zh-claimant-v-respondent-bei-jing-zhong-cai-wei-yuan-hui-cai-jue-shu-2013-jing-zhong-cai-zi-di-0149hao-monday-25th-march-2013?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:56:56 [INFO]   [15/20] https://jusmundi.com/en/document/decision/en-claimant-v-respondent-award-2013-0149-monday-25th-march-2013#pa_1924571
+17:56:56 [INFO]   [16/20] https://jusmundi.com/en/document/decision/en-xiamen-xinjingdi-group-co-ltd-v-eton-properties-ltd-and-eton-properties-holdings-ltd-judgment-of-the-court-of-appeal-of-the-high-court-of-hong-kong-2025-hkca-1119-friday-12th-december-2025?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:56:56 [INFO]   [17/20] https://jusmundi.com/en/document/decision/en-xiamen-xinjingdi-group-co-ltd-v-eton-properties-ltd-and-eton-properties-holdings-ltd-judgment-of-the-court-of-appeal-of-the-high-court-of-hong-kong-2025-hkca-1119-friday-12th-december-2025#pa_2885421
+17:56:56 [INFO]   [18/20] https://jusmundi.com/en/document/decision/en-beijing-shangye-film-and-television-culture-media-co-ltd-v-ucfti-inc-and-zuohong-chen-order-of-the-united-states-district-court-for-the-district-of-central-california-granting-petition-to-confirm-and-enforce-foreign-arbitration-application-for-default-judgment-tuesday-6th-may-2025?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:56:56 [INFO]   [19/20] https://jusmundi.com/en/document/decision/en-beijing-shangye-film-and-television-culture-media-co-ltd-v-ucfti-inc-and-zuohong-chen-order-of-the-united-states-district-court-for-the-district-of-central-california-granting-petition-to-confirm-and-enforce-foreign-arbitration-application-for-default-judgment-tuesday-6th-may-2025#pa_2585143
+17:56:56 [INFO] 滚动第 2 次 (当前 19 个)...
+17:57:00 [INFO]   无新结果 (第 1 次)
+17:57:03 [INFO] 滚动第 3 次 (当前 19 个)...
+17:57:06 [INFO]   无新结果 (第 2 次)
+17:57:10 [INFO] 滚动第 4 次 (当前 19 个)...
+17:57:14 [INFO]   无新结果 (第 3 次)
+17:57:14 [INFO] 连续多次无新结果，停止滚动
+17:57:14 [INFO] 页面源代码已保存: C:\Users\micky\Desktop\demoproject\grab\output\search_page_final.html
+17:57:16 [INFO] 共收集到 19 个不重复的案例 URL
+17:57:16 [INFO] 案例 URL 列表已保存: C:\Users\micky\Desktop\demoproject\grab\output\case_urls.json
+17:57:16 [INFO] 
+[Step 2] 爬取 19 个案例详情页...
+17:57:16 [INFO] ====== WebDriver manager ======
+17:57:18 [INFO] Driver [C:\Users\micky\.wdm\drivers\edgedriver\win64\148.0.3967.96\msedgedriver.exe] found in cache by browser version
+17:57:19 [INFO] 
+============================================================
+17:57:19 [INFO] [1/19] 处理案例...
+17:57:19 [INFO] 正在访问: https://jusmundi.com/en/document/skeleton/?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:57:29 [INFO]   未找到 PDF 链接
+17:57:32 [INFO] 
+============================================================
+17:57:32 [INFO] [2/19] 处理案例...
+17:57:32 [INFO] 正在访问: https://jusmundi.com/en/document/decision/en-singapore-commodities-group-co-pte-ltd-v-founder-group-hong-kong-ltd-judgment-of-the-court-of-appeal-of-singapore-2026-sgca-24-friday-8th-may-2026?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:57:45 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/en-singapore-commodities-group-co-pte-ltd-v-founder-gr...
+17:57:50 [INFO]   PDF 已保存: C:\Users\micky\Desktop\demoproject\grab\output\pdfs\sg-commodities-v-fghk.pdf (232484 bytes)
+17:57:54 [INFO] 
+============================================================
+17:57:54 [INFO] [3/19] 处理案例...
+17:57:54 [INFO] 正在访问: https://jusmundi.com/en/document/decision/en-singapore-commodities-group-co-pte-ltd-v-founder-group-hong-kong-ltd-judgment-of-the-court-of-appeal-of-singapore-2026-sgca-24-friday-8th-may-2026#pa_3103089
+17:57:58 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/en-singapore-commodities-group-co-pte-ltd-v-founder-gr...
+17:57:58 [INFO]   PDF 已存在，跳过: sg-commodities-v-fghk.pdf
+17:58:02 [INFO] 
+============================================================
+17:58:02 [INFO] [4/19] 处理案例...
+17:58:02 [INFO] 正在访问: https://jusmundi.com/en/document/decision/zh-daqing-mao-v-beijing-hongkun-weiye-real-estate-development-co-ltd-and-bin-zhao-bei-jing-shi-di-si-zhong-ji-min-fa-yuan-min-shi-cai-ding-shu-2023-jing-04min-te-645hao-wednesday-9th-august-2023?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:58:08 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/zh-daqing-mao-v-beijing-hongkun-weiye-real-estate-deve...
+17:58:13 [INFO]   PDF 已保存: C:\Users\micky\Desktop\demoproject\grab\output\pdfs\mao-v-hongkun-weiye-real-estate-development-and-zhao.pdf (174049 bytes)
+17:58:15 [INFO] 
+============================================================
+17:58:15 [INFO] [5/19] 处理案例...
+17:58:15 [INFO] 正在访问: https://jusmundi.com/en/document/decision/en-daqing-mao-v-beijing-hongkun-weiye-real-estate-development-co-ltd-and-bin-zhao-civil-ruling-of-the-fourth-intermediate-peoples-court-of-beijing-municipality-2023-jing-04-minte-645-wednesday-9th-august-2023#pa_1965778
+17:58:20 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/zh-daqing-mao-v-beijing-hongkun-weiye-real-estate-deve...
+17:58:20 [INFO]   PDF 已存在，跳过: mao-v-hongkun-weiye-real-estate-development-and-zhao.pdf
+17:58:25 [INFO] 
+============================================================
+17:58:25 [INFO] [6/19] 处理案例...
+17:58:25 [INFO] 正在访问: https://jusmundi.com/en/document/decision/zh-hainan-daye-industrial-co-ltd-v-radisson-hotel-management-shanghai-co-ltd-and-radisson-hotels-asia-pacific-investments-pte-ltd-bei-jing-shi-di-si-zhong-ji-min-fa-yuan-min-shi-cai-ding-shu-2023-jing-04min-te-98hao-monday-19th-june-2023?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:58:31 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/zh-hainan-daye-industrial-co-ltd-v-radisson-hotel-mana...
+17:58:35 [INFO]   PDF 已保存: C:\Users\micky\Desktop\demoproject\grab\output\pdfs\daye-industrial-v-radisson-hotel-management-and-radisson-hotels-asia-pacific-inv.pdf (141675 bytes)
+17:58:39 [INFO] 
+============================================================
+17:58:39 [INFO] [7/19] 处理案例...
+17:58:39 [INFO] 正在访问: https://jusmundi.com/en/document/decision/en-hainan-daye-industrial-co-ltd-v-radisson-hotel-management-shanghai-co-ltd-and-radisson-hotels-asia-pacific-investments-pte-ltd-civil-ruling-of-the-fourth-intermediate-peoples-court-of-beijing-municipality-2023-jing-04-minte-98-monday-19th-june-2023#pa_1895366
+17:58:46 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/zh-hainan-daye-industrial-co-ltd-v-radisson-hotel-mana...
+17:58:46 [INFO]   PDF 已存在，跳过: daye-industrial-v-radisson-hotel-management-and-radisson-hotels-asia-pacific-inv.pdf
+17:58:49 [INFO] 
+============================================================
+17:58:49 [INFO] [8/19] 处理案例...
+17:58:49 [INFO] 正在访问: https://jusmundi.com/en/document/decision/en-tianjin-wendu-education-technology-co-ltd-and-peng-wu-v-xiaoping-feng-award-2022-2333-tuesday-11th-october-2022?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:58:54 [INFO]   未找到 PDF 链接
+17:58:58 [INFO] 
+============================================================
+17:58:58 [INFO] [9/19] 处理案例...
+17:58:58 [INFO] 正在访问: https://jusmundi.com/en/document/decision/en-yuan-jing-v-shuogang-chen-order-of-united-states-district-court-central-district-of-californiagranting-petitioner-s-second-amended-petition-to-confirm-arbitration-and-for-entry-of-judgment-dkt-25-and-granting-leave-to-file-declaration-one-day-late-dkt-26-friday-18th-july-2025?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:59:05 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/pdf/decision/en-yuan-jing-v-shuogang-chen-order-of-united-states-di...
+17:59:08 [INFO]   PDF 已保存: C:\Users\micky\Desktop\demoproject\grab\output\pdfs\yuan-jing-v-shuogang-chen.pdf (208894 bytes)
+17:59:13 [INFO] 
+============================================================
+17:59:13 [INFO] [10/19] 处理案例...
+17:59:13 [INFO] 正在访问: https://jusmundi.com/en/document/decision/zh-liao-yang-hong-wei-wu-sun-jian-ce-gong-cheng-you-xian-gong-si-yu-zhong-hai-you-hui-zhou-shi-hua-you-xian-gong-si-zhong-cai-an-bei-jing-shi-di-si-zhong-ji-ren-min-fa-yuan-min-shi-cai-ding-shu-2023-jing-04min-te-188hao-thursday-6th-april-2023?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:59:18 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/zh-liao-yang-hong-wei-wu-sun-jian-ce-gong-cheng-you-xi...
+17:59:22 [INFO]   PDF 已保存: C:\Users\micky\Desktop\demoproject\grab\output\pdfs\liaoyang-hongwei-nondestructive-testing-engineering-v-cnooc-huizhou-petrochemica.pdf (127373 bytes)
+17:59:25 [INFO] 
+============================================================
+17:59:25 [INFO] [11/19] 处理案例...
+17:59:25 [INFO] 正在访问: https://jusmundi.com/en/document/decision/en-liaoyang-hongwei-nondestructive-testing-engineering-co-ltd-v-cnooc-huizhou-petrochemical-co-ltd-civil-ruling-of-the-fourth-intermediate-peoples-court-of-beijing-municipality-2023-jing-04-minte-188-thursday-6th-april-2023#pa_1878276
+17:59:32 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/zh-liao-yang-hong-wei-wu-sun-jian-ce-gong-cheng-you-xi...
+17:59:32 [INFO]   PDF 已存在，跳过: liaoyang-hongwei-nondestructive-testing-engineering-v-cnooc-huizhou-petrochemica.pdf
+17:59:35 [INFO] 
+============================================================
+17:59:35 [INFO] [12/19] 处理案例...
+17:59:35 [INFO] 正在访问: https://jusmundi.com/en/document/decision/en-claimant-1-and-claimant-2-v-respondent-1and-respondent-2-decision-of-the-emergency-arbitrator-friday-29th-september-2017?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+17:59:42 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/en-claimant-1-and-claimant-2-v-respondent-1and-respond...
+17:59:48 [INFO]   PDF 已保存: C:\Users\micky\Desktop\demoproject\grab\output\pdfs\claimants-v-respondents.pdf (174586 bytes)
+17:59:53 [INFO] 
+============================================================
+17:59:53 [INFO] [13/19] 处理案例...
+17:59:53 [INFO] 正在访问: https://jusmundi.com/en/document/decision/en-claimant-1-and-claimant-2-v-respondent-1and-respondent-2-decision-of-the-emergency-arbitrator-friday-29th-september-2017#pa_1842278
+17:59:57 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/en-claimant-1-and-claimant-2-v-respondent-1and-respond...
+17:59:57 [INFO]   PDF 已存在，跳过: claimants-v-respondents.pdf
+17:59:59 [INFO] 
+============================================================
+17:59:59 [INFO] [14/19] 处理案例...
+17:59:59 [INFO] 正在访问: https://jusmundi.com/en/document/decision/zh-claimant-v-respondent-bei-jing-zhong-cai-wei-yuan-hui-cai-jue-shu-2013-jing-zhong-cai-zi-di-0149hao-monday-25th-march-2013?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+18:00:05 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/zh-claimant-v-respondent-bei-jing-zhong-cai-wei-yuan-h...
+18:00:10 [INFO]   PDF 已保存: C:\Users\micky\Desktop\demoproject\grab\output\pdfs\claimant-v-respondent.pdf (264003 bytes)
+18:00:15 [INFO] 
+============================================================
+18:00:15 [INFO] [15/19] 处理案例...
+18:00:15 [INFO] 正在访问: https://jusmundi.com/en/document/decision/en-claimant-v-respondent-award-2013-0149-monday-25th-march-2013#pa_1924571
+18:00:20 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/zh-claimant-v-respondent-bei-jing-zhong-cai-wei-yuan-h...
+18:00:20 [INFO]   PDF 已存在，跳过: claimant-v-respondent.pdf
+18:00:24 [INFO] 
+============================================================
+18:00:24 [INFO] [16/19] 处理案例...
+18:00:24 [INFO] 正在访问: https://jusmundi.com/en/document/decision/en-xiamen-xinjingdi-group-co-ltd-v-eton-properties-ltd-and-eton-properties-holdings-ltd-judgment-of-the-court-of-appeal-of-the-high-court-of-hong-kong-2025-hkca-1119-friday-12th-december-2025?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+18:00:30 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/en-xiamen-xinjingdi-group-co-ltd-v-eton-properties-ltd...
+18:00:36 [INFO]   PDF 已保存: C:\Users\micky\Desktop\demoproject\grab\output\pdfs\xiamen-xinjingdi-group-v-eton-properties.pdf (197329 bytes)
+18:00:39 [INFO] 
+============================================================
+18:00:39 [INFO] [17/19] 处理案例...
+18:00:39 [INFO] 正在访问: https://jusmundi.com/en/document/decision/en-xiamen-xinjingdi-group-co-ltd-v-eton-properties-ltd-and-eton-properties-holdings-ltd-judgment-of-the-court-of-appeal-of-the-high-court-of-hong-kong-2025-hkca-1119-friday-12th-december-2025#pa_2885421
+18:00:43 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/en-xiamen-xinjingdi-group-co-ltd-v-eton-properties-ltd...
+18:00:43 [INFO]   PDF 已存在，跳过: xiamen-xinjingdi-group-v-eton-properties.pdf
+18:00:46 [INFO] 
+============================================================
+18:00:46 [INFO] [18/19] 处理案例...
+18:00:46 [INFO] 正在访问: https://jusmundi.com/en/document/decision/en-beijing-shangye-film-and-television-culture-media-co-ltd-v-ucfti-inc-and-zuohong-chen-order-of-the-united-states-district-court-for-the-district-of-central-california-granting-petition-to-confirm-and-enforce-foreign-arbitration-application-for-default-judgment-tuesday-6th-may-2025?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+18:00:51 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/en-beijing-shangye-film-and-television-culture-media-c...
+18:00:57 [INFO]   PDF 已保存: C:\Users\micky\Desktop\demoproject\grab\output\pdfs\beijing-shangye-v-ucfti-and-zuohong-chen.pdf (53986 bytes)
+18:01:00 [INFO] 
+============================================================
+18:01:00 [INFO] [19/19] 处理案例...
+18:01:00 [INFO] 正在访问: https://jusmundi.com/en/document/decision/en-beijing-shangye-film-and-television-culture-media-co-ltd-v-ucfti-inc-and-zuohong-chen-order-of-the-united-states-district-court-for-the-district-of-central-california-granting-petition-to-confirm-and-enforce-foreign-arbitration-application-for-default-judgment-tuesday-6th-may-2025#pa_2585143
+18:01:03 [INFO]   找到 PDF 链接: https://jusmundi.com/en/document/decision/pdf/en-beijing-shangye-film-and-television-culture-media-c...
+18:01:03 [INFO]   PDF 已存在，跳过: beijing-shangye-v-ucfti-and-zuohong-chen.pdf
+18:01:08 [INFO] 
+爬取完成: 共处理 19 个案例
+18:01:08 [INFO] 
+[Step 3] 分析已下载的 PDF 文件...
+18:01:08 [INFO] 案例无 PDF 文件: https://jusmundi.com/en/document/skeleton/?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+18:01:08 [INFO] PDF 分析完成: sg-commodities-v-fghk.pdf | 页数: 42 | 字符数: 152911
+18:01:08 [INFO] PDF 分析完成: sg-commodities-v-fghk.pdf | 页数: 42 | 字符数: 152911
+18:01:08 [INFO] PDF 分析完成: mao-v-hongkun-weiye-real-estate-development-and-zhao.pdf | 页数: 6 | 字符数: 5941
+18:01:08 [INFO] PDF 分析完成: mao-v-hongkun-weiye-real-estate-development-and-zhao.pdf | 页数: 6 | 字符数: 5941
+18:01:08 [INFO] PDF 分析完成: daye-industrial-v-radisson-hotel-management-and-radisson-hotels-asia-pacific-inv.pdf | 页数: 5 | 字符数: 4572
+18:01:08 [INFO] PDF 分析完成: daye-industrial-v-radisson-hotel-management-and-radisson-hotels-asia-pacific-inv.pdf | 页数: 5 | 字符数: 4572
+18:01:08 [INFO] 案例无 PDF 文件: https://jusmundi.com/en/document/decision/en-tianjin-wendu-education-technology-co-ltd-and-peng-wu-v-xiaoping-feng-award-2022-2333-tuesday-11th-october-2022?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den
+18:01:09 [INFO] PDF 分析完成: yuan-jing-v-shuogang-chen.pdf | 页数: 10 | 字符数: 27136
+18:01:09 [INFO] PDF 分析完成: liaoyang-hongwei-nondestructive-testing-engineering-v-cnooc-huizhou-petrochemica.pdf | 页数: 4 | 字符数: 3215
+18:01:09 [INFO] PDF 分析完成: liaoyang-hongwei-nondestructive-testing-engineering-v-cnooc-huizhou-petrochemica.pdf | 页数: 4 | 字符数: 3215
+18:01:09 [INFO] PDF 分析完成: claimants-v-respondents.pdf | 页数: 25 | 字符数: 75462
+18:01:09 [INFO] PDF 分析完成: claimants-v-respondents.pdf | 页数: 25 | 字符数: 75462
+18:01:09 [INFO] PDF 分析完成: claimant-v-respondent.pdf | 页数: 10 | 字符数: 12896
+18:01:09 [INFO] PDF 分析完成: claimant-v-respondent.pdf | 页数: 10 | 字符数: 12896
+18:01:09 [INFO] PDF 分析完成: xiamen-xinjingdi-group-v-eton-properties.pdf | 页数: 24 | 字符数: 77581
+18:01:09 [INFO] PDF 分析完成: xiamen-xinjingdi-group-v-eton-properties.pdf | 页数: 24 | 字符数: 77581
+18:01:09 [INFO] PDF 分析完成: beijing-shangye-v-ucfti-and-zuohong-chen.pdf | 页数: 7 | 字符数: 18191
+18:01:09 [INFO] PDF 分析完成: beijing-shangye-v-ucfti-and-zuohong-chen.pdf | 页数: 7 | 字符数: 18191
+18:01:09 [INFO] 
+[Step 4] 导出 Excel...
+18:01:09 [INFO] Excel 已导出: C:\Users\micky\Desktop\demoproject\grab\output\jusmundi_cases.xlsx
+18:01:09 [INFO] 
+============================================================
+18:01:09 [INFO] ✅ 爬取完成!
+18:01:09 [INFO]    总案例数: 19
+18:01:09 [INFO]    含 PDF 案例: 17
+18:01:09 [INFO]    总 PDF 页数: 256
+18:01:09 [INFO]    总 PDF 字符数: 728,674
+18:01:09 [INFO]    PDF 目录: C:\Users\micky\Desktop\demoproject\grab\output\pdfs
+18:01:09 [INFO]    Excel 文件: C:\Users\micky\Desktop\demoproject\grab\output\jusmundi_cases.xlsx
+18:01:09 [INFO] ============================================================

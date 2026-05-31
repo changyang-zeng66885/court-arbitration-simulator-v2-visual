@@ -1,0 +1,44 @@
+{
+  "case_id": "case002",
+  "title": "Claimants v. Respondents",
+  "case_number": "No. 2373",
+  "pdf_name": "claimants-v-respondents.pdf",
+  "page_count": 25,
+  "char_count": 75509,
+  "pdf_sha256": "b54a5dc4cf699f06352a1dc192a7d9073648037ce7e6f71d2da17a53e1ea58f0",
+  "text_sha256": "a414d81b62fab67bb1757ec9b11ae7db2998bf136a70ffff9165a2048e555952",
+  "source_rows": [
+    4,
+    5
+  ],
+  "urls": [
+    "https://jusmundi.com/en/document/decision/en-claimant-1-and-claimant-2-v-respondent-1and-respondent-2-decision-of-the-emergency-arbitrator-friday-29th-september-2017?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den",
+    "https://jusmundi.com/en/document/decision/en-claimant-1-and-claimant-2-v-respondent-1and-respondent-2-decision-of-the-emergency-arbitrator-friday-29th-september-2017#pa_1842278"
+  ],
+  "metadata": {
+    "案件标题 (Case Title)": "Claimants v. Respondents",
+    "案号 (Case Number)": "No. 2373",
+    "程序性质 (Nature)": "International",
+    "案件类型 (Type)": "Commercial Arbitration",
+    "引入日期 (Date of Introduction)": "6 Sept 2017",
+    "案件状态 (Status)": "Concluded",
+    "申请人国籍 (Claimant)": "Hong Kong SAR China",
+    "被申请人国籍 (Respondent)": "China",
+    "仲裁机构 (Institution)": "BAC/BIAC (Beijing Arbitration Commission/Beijing International Arbitration Court)",
+    "仲裁规则 (Rules)": "BAC/BIAC Arbitration Rules 2015",
+    "仲裁地 (Seat)": "Beijing",
+    "适用法律 (Applicable Law)": "China",
+    "案件文档 (Documents)": "Decision of the Emergency Arbitrator - 29 Sept 2017",
+    "更新日期 (Updated On)": "28 Apr 2025",
+    "PDF 字符数": "75462",
+    "PDF 页数": "25",
+    "PDF 保存路径": "C:\\Users\\micky\\Desktop\\demoproject\\grab\\output\\pdfs\\claimants-v-respondents.pdf",
+    "案例 URL": "https://jusmundi.com/en/document/decision/en-claimant-1-and-claimant-2-v-respondent-1and-respondent-2-decision-of-the-emergency-arbitrator-friday-29th-september-2017?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den",
+    "local_pdf_path": "C:\\Users\\micky\\Desktop\\demoproject\\grab\\output\\pdfs\\claimants-v-respondents.pdf",
+    "source_pdf_name": "claimants-v-respondents.pdf",
+    "source_rows": "4, 5",
+    "deduplicated_row_count": "2",
+    "case_urls": "https://jusmundi.com/en/document/decision/en-claimant-1-and-claimant-2-v-respondent-1and-respondent-2-decision-of-the-emergency-arbitrator-friday-29th-september-2017?su=%2Fen%2Fsearch%3Fcase_applicable-law%3D1073%26case_arbitration-rule%3D1050674%2C1050669%2C1050573%26document-types%3Dcase%26lang%3Den\nhttps://jusmundi.com/en/document/decision/en-claimant-1-and-claimant-2-v-respondent-1and-respondent-2-decision-of-the-emergency-arbitrator-friday-29th-september-2017#pa_1842278",
+    "case_documents": "Decision of the Emergency Arbitrator - 29 Sept 2017"
+  }
+}
