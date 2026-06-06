@@ -5,6 +5,7 @@ import html
 import json
 import os
 import queue
+import re
 import shutil
 import subprocess
 import sys
@@ -346,11 +347,333 @@ def as_text(value: Any) -> str:
     return str(value)
 
 
+# ---------------------------------------------------------------------------
+# RAG citation helpers
+# ---------------------------------------------------------------------------
+
+_RAG_CITATION_PATTERN = re.compile(
+    r">\s*\[([^\]]+),\s*((?:case|law):[^\]]+)\]\s*原文：(.+)",
+    re.MULTILINE,
+)
+
+
+# ---------------------------------------------------------------------------
+# PDF / DOCX text extraction (used by load_rag_source for law documents)
+# ---------------------------------------------------------------------------
+
+def _extract_docx_text(path: Path) -> str:
+    import zipfile
+    from xml.etree import ElementTree as ET
+
+    with zipfile.ZipFile(path) as archive:
+        xml_bytes = archive.read("word/document.xml")
+    root = ET.fromstring(xml_bytes)
+    namespace = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+    paragraphs: list[str] = []
+    for paragraph in root.findall(".//w:p", namespace):
+        texts = [node.text or "" for node in paragraph.findall(".//w:t", namespace)]
+        line = "".join(texts).strip()
+        if line:
+            paragraphs.append(line)
+    return "\n".join(paragraphs)
+
+
+def _extract_pdf_text(path: Path) -> str:
+    try:
+        import fitz
+    except ImportError:
+        return "[无法解析PDF：缺少 pymupdf 依赖。请运行 pip install pymupdf]"
+
+    with fitz.open(path) as document:
+        return "\n".join(page.get_text("text") for page in document)
+
+
+def _read_knowledge_text(path: Path) -> str:
+    """Read a knowledge document, handling PDF/DOCX/MD/TXT."""
+    suffix = path.suffix.lower()
+    if suffix in {".md", ".txt"}:
+        return path.read_text(encoding="utf-8", errors="ignore")
+    if suffix == ".json":
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        return json.dumps(payload, ensure_ascii=False, indent=2)
+    if suffix == ".docx":
+        return _extract_docx_text(path)
+    if suffix == ".pdf":
+        return _extract_pdf_text(path)
+    return path.read_text(encoding="utf-8", errors="ignore")
+
+
+def _split_text_into_chunks(text: str, *, max_chars: int = 1200, overlap: int = 150) -> list[str]:
+    """Re-split document text using the same algorithm as the RAG builder.
+
+    Must match ``split_text_into_chunks`` in ``scripts/simulate_case.py`` so that
+    a chunk_id like ``law:xxx:0015`` maps to the exact same text block.
+    """
+    normalized = re.sub(r"\n{3,}", "\n\n", text).strip()
+    if not normalized:
+        return []
+
+    chunks: list[str] = []
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", normalized) if p.strip()]
+    current = ""
+    for paragraph in paragraphs:
+        if len(paragraph) > max_chars:
+            if current:
+                chunks.append(current.strip())
+                current = ""
+            start = 0
+            while start < len(paragraph):
+                end = min(len(paragraph), start + max_chars)
+                chunks.append(paragraph[start:end].strip())
+                if end == len(paragraph):
+                    break
+                start = max(0, end - overlap)
+            continue
+
+        candidate = f"{current}\n\n{paragraph}".strip() if current else paragraph
+        if len(candidate) <= max_chars:
+            current = candidate
+        else:
+            if current:
+                chunks.append(current.strip())
+            current = paragraph
+
+    if current:
+        chunks.append(current.strip())
+    return chunks
+
+
+def parse_rag_citations(text: str) -> list[dict[str, str]]:
+    """Extract RAG citations from text content.
+
+    Each citation has the format:
+        > [来源, chunk_id] 原文：excerpt text
+
+    Returns a list of dicts with keys: full, source_label, chunk_id, excerpt.
+    """
+    citations: list[dict[str, str]] = []
+    for match in _RAG_CITATION_PATTERN.finditer(text):
+        citations.append(
+            {
+                "full": match.group(0),
+                "source_label": match.group(1).strip(),
+                "chunk_id": match.group(2).strip(),
+                "excerpt": match.group(3).strip(),
+            }
+        )
+    return citations
+
+
+def load_rag_source(chunk_id: str) -> str | None:
+    """Load the specific chunk (with context) referenced by *chunk_id*.
+
+    chunk_id format:
+        case:case005:0011  →  data/processed/rag_corpus/case005/text.md
+        law:doc_name:0015  →  ref_rules_doc/<matching file>
+
+    The document is re-split with the same parameters the RAG builder used
+    (max_chars=1200, overlap=150), so chunk 0015 maps to the identical text
+    block the LLM saw.  Surrounding chunks are included for context.
+    """
+    parts = chunk_id.split(":")
+    if len(parts) < 3:
+        return None
+    id_prefix, stem, chunk_num_str = parts[0], parts[1], parts[2]
+
+    source_path: Path | None = None
+
+    if id_prefix == "case":
+        candidate = CASE_RAG_DIR / stem / "text.md"
+        if candidate.exists():
+            source_path = candidate
+    elif id_prefix == "law":
+        if RULES_DIR.exists():
+            for rule_path in RULES_DIR.iterdir():
+                if not rule_path.is_file():
+                    continue
+                rule_stem = rule_path.stem
+                if rule_stem == stem or rule_stem.replace("-", "").replace("_", "") == stem.replace("-", "").replace("_", ""):
+                    source_path = rule_path
+                    break
+            if source_path is None:
+                for rule_path in RULES_DIR.iterdir():
+                    if rule_path.is_file() and stem[:6] in rule_path.stem:
+                        source_path = rule_path
+                        break
+
+    if source_path is None or not source_path.exists():
+        return None
+
+    try:
+        chunk_num = int(chunk_num_str)
+    except ValueError:
+        return None
+
+    try:
+        full_text = _read_knowledge_text(source_path)
+        chunks = _split_text_into_chunks(full_text)
+        total = len(chunks)
+
+        if chunk_num < 1 or chunk_num > total:
+            return (
+                f"⚠️ chunk_id 超出范围：文档共有 {total} 个文本块，"
+                f"请求的是第 {chunk_num} 个。\n\n"
+                f"文档路径：{source_path}\n\n"
+                f"--- 文档开头预览 ---\n{full_text[:3000]}"
+            )
+
+        # Show the specific chunk with one chunk of context on each side
+        parts_out: list[str] = []
+        parts_out.append(f"📄 源文件：{source_path.name}（共 {total} 个文本块，当前为第 {chunk_num} 块）\n")
+
+        if chunk_num > 1:
+            parts_out.append(f"━━━ 上一块 (chunk {chunk_num - 1}) ━━━")
+            parts_out.append(chunks[chunk_num - 2])
+            parts_out.append("")
+
+        parts_out.append(f"━━━ ★ 引用的文本块 (chunk {chunk_num}) ★ ━━━")
+        parts_out.append(chunks[chunk_num - 1])
+        parts_out.append("")
+
+        if chunk_num < total:
+            parts_out.append(f"━━━ 下一块 (chunk {chunk_num + 1}) ━━━")
+            parts_out.append(chunks[chunk_num])
+
+        return "\n".join(parts_out)
+    except Exception:
+        return None
+
+
+def render_rag_card_html(source_label: str, chunk_id: str, excerpt: str) -> str:
+    """Build an HTML card for a single RAG citation."""
+    if "案例" in source_label:
+        card_class = "rag-card-case"
+        icon = "📋"
+    elif "法律" in source_label:
+        card_class = "rag-card-law"
+        icon = "📜"
+    else:
+        card_class = "rag-card-default"
+        icon = "📎"
+
+    detail_html = ""
+    source_text = load_rag_source(chunk_id)
+    if source_text:
+        escaped_source = html.escape(source_text)
+        detail_html = (
+            "<details class='rag-detail'>"
+            "<summary>📂 查看原始文档内容</summary>"
+            f"<div class='rag-source-content'>{escaped_source}</div>"
+            "</details>"
+        )
+
+    return (
+        f"<div class='rag-card {card_class}'>"
+        f"<div class='rag-card-header'>"
+        f"<span class='rag-card-icon'>{icon}</span>"
+        f"<span class='rag-card-source'>{html.escape(source_label)}</span>"
+        f"<span class='rag-card-id'>{html.escape(chunk_id)}</span>"
+        f"</div>"
+        f"<div class='rag-card-body'>"
+        f"<div class='rag-card-excerpt'>{html.escape(excerpt)}</div>"
+        f"</div>"
+        f"{detail_html}"
+        f"</div>"
+    )
+
+
+def render_content_with_rag_cards(content: str) -> str:
+    """Render text content, converting RAG citations into HTML cards."""
+    if not content:
+        return ""
+
+    matches = list(_RAG_CITATION_PATTERN.finditer(content))
+    if not matches:
+        return html.escape(content).replace("\n", "<br>")
+
+    parts: list[str] = []
+    cursor = 0
+    for match in matches:
+        # Text before this citation
+        before = content[cursor : match.start()]
+        if before:
+            parts.append(html.escape(before).replace("\n", "<br>"))
+
+        # RAG citation card
+        source_label = match.group(1).strip()
+        chunk_id = match.group(2).strip()
+        excerpt = match.group(3).strip()
+        parts.append(render_rag_card_html(source_label, chunk_id, excerpt))
+
+        cursor = match.end()
+
+    # Remaining text after the last citation
+    tail = content[cursor:]
+    if tail:
+        parts.append(html.escape(tail).replace("\n", "<br>"))
+
+    return "".join(parts)
+
+
+def render_markdown_with_rag_cards(md_text: str) -> str:
+    """Process markdown text, replacing RAG citation blockquotes with HTML cards.
+
+    Unlike ``render_content_with_rag_cards`` which escapes everything outside
+    citations, this function keeps the surrounding markdown intact so it can be
+    fed to ``st.markdown(..., unsafe_allow_html=True)``.
+    """
+    if not md_text:
+        return ""
+
+    # Multi-line aware: capture the citation header and any continuation lines
+    # that are part of the same blockquote paragraph.
+    pattern = re.compile(
+        r"(?:^|\n)> *\[([^\]]+), *((?:case|law):[^\]]+)\] *原文：(.+?)(?=\n(?:[^>]|\n|$)|$)",
+        re.MULTILINE,
+    )
+
+    matches = list(pattern.finditer(md_text))
+    if not matches:
+        return md_text
+
+    parts: list[str] = []
+    cursor = 0
+    for match in matches:
+        before = md_text[cursor : match.start()]
+        parts.append(before)
+
+        source_label = match.group(1).strip()
+        chunk_id = match.group(2).strip()
+        excerpt = match.group(3).strip()
+
+        # Also consume any immediately following blockquote continuation lines
+        end = match.end()
+        remaining = md_text[end:]
+        continuation_pattern = re.compile(r"^\n(> .*)", re.MULTILINE)
+        while True:
+            cont_match = continuation_pattern.match(remaining)
+            if not cont_match:
+                break
+            cont_line = cont_match.group(1)
+            # Check that this continuation line is NOT a new citation
+            if re.match(r"> *\[[^\]]+, *(?:case|law):[^\]]+\] *原文：", cont_line):
+                break
+            excerpt += "\n" + cont_line[2:].strip()
+            end += len(cont_match.group(0))
+            remaining = md_text[end:]
+
+        parts.append(render_rag_card_html(source_label, chunk_id, excerpt))
+        cursor = end
+
+    parts.append(md_text[cursor:])
+    return "".join(parts)
+
+
 def render_bubble(speaker: str, content: str, meta: str = "", tone: str = "neutral") -> None:
     initials = speaker[:2] if speaker else "AI"
     escaped_speaker = html.escape(speaker)
-    escaped_content = html.escape(content).replace("\n", "<br>")
-    escaped_meta = html.escape(meta).replace("\n", "<br>")
+    escaped_content = render_content_with_rag_cards(content)
+    escaped_meta = render_content_with_rag_cards(meta) if meta else ""
     meta_html = f'<div class="bubble-meta">{escaped_meta}</div>' if escaped_meta else ""
     st.markdown(
         f"""
@@ -661,7 +984,8 @@ def render_result(result: dict[str, Any]) -> None:
         render_chat(payload)
 
     with tab_advice:
-        st.markdown(result["advice"])
+        processed_advice = render_markdown_with_rag_cards(result["advice"])
+        st.markdown(processed_advice, unsafe_allow_html=True)
 
     with tab_training:
         frame = build_training_dataframe(payload)
@@ -677,7 +1001,8 @@ def render_result(result: dict[str, Any]) -> None:
                 key=f"download-training-{result_key}",
             )
         with st.expander("Markdown 总结"):
-            st.markdown(result["summary"])
+            processed_summary = render_markdown_with_rag_cards(result["summary"])
+            st.markdown(processed_summary, unsafe_allow_html=True)
 
     with tab_files:
         st.write(compact_filename(result["case_output_dir"]))
@@ -831,6 +1156,85 @@ def add_styles() -> None:
         .live-note.done {
             border-left: 4px solid #15803d;
             background: #f0fdf4;
+        }
+        /* ── RAG citation cards ── */
+        .rag-card {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            margin: 0.65rem 0;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+            font-size: 0.88rem;
+        }
+        .rag-card-case {
+            border-left: 4px solid #0891b2;
+            background: #f0fdff;
+        }
+        .rag-card-law {
+            border-left: 4px solid #059669;
+            background: #ecfdf5;
+        }
+        .rag-card-default {
+            border-left: 4px solid #6366f1;
+            background: #fafafe;
+        }
+        .rag-card-header {
+            padding: 0.45rem 0.7rem;
+            background: rgba(0, 0, 0, 0.025);
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+        .rag-card-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .rag-card-source {
+            font-weight: 700;
+            color: #334155;
+        }
+        .rag-card-id {
+            color: #64748b;
+            font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+            font-size: 0.75rem;
+            margin-left: auto;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+        }
+        .rag-card-body {
+            padding: 0.6rem 0.7rem;
+        }
+        .rag-card-excerpt {
+            color: #334155;
+            line-height: 1.68;
+        }
+        .rag-detail {
+            margin: 0;
+            border-top: 1px solid #e2e8f0;
+        }
+        .rag-detail summary {
+            padding: 0.45rem 0.7rem;
+            cursor: pointer;
+            color: #2563eb;
+            font-size: 0.84rem;
+            font-weight: 500;
+            user-select: none;
+        }
+        .rag-detail summary:hover {
+            background: rgba(37, 99, 235, 0.06);
+        }
+        .rag-source-content {
+            padding: 0.7rem;
+            max-height: 320px;
+            overflow-y: auto;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.84rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            color: #475569;
         }
         </style>
         """,

@@ -1,0 +1,15 @@
+{
+  "case_doc": "C:\\Users\\micky\\Desktop\\demoproject\\court-arbitration-simulator-v2-visual\\outputs\\streamlit_runs\\20260606_231832\\uploaded_case\\main.md",
+  "law": "中国大陆法律",
+  "rule_choice": "自动识别",
+  "effective_rules": [
+    "北京仲裁委员会-国内仲裁规则.pdf"
+  ],
+  "position": "claimant",
+  "position_label": "申请方",
+  "rounds": 5,
+  "qa_pairs": 2,
+  "strategy_block_size": 5,
+  "dry_run": false,
+  "events_path": "C:\\Users\\micky\\Desktop\\demoproject\\court-arbitration-simulator-v2-visual\\outputs\\streamlit_runs\\20260606_231832\\events.jsonl"
+}
