@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import html
 import json
+import math
 import os
 import queue
 import re
@@ -11,6 +13,7 @@ import subprocess
 import sys
 import threading
 import time
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +31,9 @@ POSITION_OPTIONS = {"申请方": "claimant", "被申请方": "respondent"}
 POSITION_LABELS = {value: label for label, value in POSITION_OPTIONS.items()}
 AUTO_RULE_OPTION = "自动识别"
 ALL_RULES_OPTION = "全部规则文档"
+RESULT_RAG_SOURCE_LABEL = "本案模拟结果（RAG）"
+LAW_RAG_SOURCE_LABEL = "法律条文知识库（RAG）"
+CASE_RAG_SOURCE_LABEL = "公开案例数据库（RAG）"
 
 
 def read_text(path: Path) -> str:
@@ -352,7 +358,7 @@ def as_text(value: Any) -> str:
 # ---------------------------------------------------------------------------
 
 _RAG_CITATION_PATTERN = re.compile(
-    r">\s*\[([^\]]+),\s*((?:case|law):[^\]]+)\]\s*原文：(.+)",
+    r">\s*\[([^\]]+),\s*((?:case|law|result):[^\]]+)\]\s*原文：(.+)",
     re.MULTILINE,
 )
 
@@ -480,6 +486,14 @@ def load_rag_source(chunk_id: str) -> str | None:
         return None
     id_prefix, stem, chunk_num_str = parts[0], parts[1], parts[2]
 
+    if id_prefix == "result":
+        result_sources = st.session_state.get("qa_result_chunk_sources", {})
+        if isinstance(result_sources, dict):
+            source_text = result_sources.get(chunk_id)
+            if isinstance(source_text, str):
+                return source_text
+        return None
+
     source_path: Path | None = None
 
     if id_prefix == "case":
@@ -552,6 +566,9 @@ def render_rag_card_html(source_label: str, chunk_id: str, excerpt: str) -> str:
     elif "法律" in source_label:
         card_class = "rag-card-law"
         icon = "📜"
+    elif "本案" in source_label or chunk_id.startswith("result:"):
+        card_class = "rag-card-result"
+        icon = "案"
     else:
         card_class = "rag-card-default"
         icon = "📎"
@@ -628,7 +645,7 @@ def render_markdown_with_rag_cards(md_text: str) -> str:
     # Multi-line aware: capture the citation header and any continuation lines
     # that are part of the same blockquote paragraph.
     pattern = re.compile(
-        r"(?:^|\n)> *\[([^\]]+), *((?:case|law):[^\]]+)\] *原文：(.+?)(?=\n(?:[^>]|\n|$)|$)",
+        r"(?:^|\n)> *\[([^\]]+), *((?:case|law|result):[^\]]+)\] *原文：(.+?)(?=\n(?:[^>]|\n|$)|$)",
         re.MULTILINE,
     )
 
@@ -656,7 +673,7 @@ def render_markdown_with_rag_cards(md_text: str) -> str:
                 break
             cont_line = cont_match.group(1)
             # Check that this continuation line is NOT a new citation
-            if re.match(r"> *\[[^\]]+, *(?:case|law):[^\]]+\] *原文：", cont_line):
+            if re.match(r"> *\[[^\]]+, *(?:case|law|result):[^\]]+\] *原文：", cont_line):
                 break
             excerpt += "\n" + cont_line[2:].strip()
             end += len(cont_match.group(0))
@@ -667,6 +684,713 @@ def render_markdown_with_rag_cards(md_text: str) -> str:
 
     parts.append(md_text[cursor:])
     return "".join(parts)
+
+
+def qa_result_widget_key(result: dict[str, Any], suffix: str) -> str:
+    raw_key = str(result.get("log_path") or result.get("case_output_dir") or result.get("case_id") or "result")
+    digest = hashlib.sha1(raw_key.encode("utf-8", errors="ignore")).hexdigest()[:12]
+    return f"qa-{suffix}-{digest}"
+
+
+def qa_int_to_chinese_number(value: int) -> str:
+    if value <= 0 or value > 9999:
+        return str(value)
+    digits = "零一二三四五六七八九"
+    units = ["", "十", "百", "千"]
+    chars: list[str] = []
+    zero_pending = False
+    num_text = str(value)
+    length = len(num_text)
+    for index, char in enumerate(num_text):
+        digit = int(char)
+        unit = units[length - index - 1]
+        if digit == 0:
+            zero_pending = bool(chars)
+            continue
+        if zero_pending:
+            chars.append("零")
+            zero_pending = False
+        if not (digit == 1 and unit == "十" and not chars):
+            chars.append(digits[digit])
+        chars.append(unit)
+    return "".join(chars)
+
+
+def expand_qa_query(text: str) -> str:
+    additions: list[str] = []
+    for match in re.finditer(r"第\s*(\d{1,4})\s*条", text):
+        additions.append(f"第{qa_int_to_chinese_number(int(match.group(1)))}条")
+    if "通谋虚伪表示" in text or "虚伪表示" in text:
+        additions.append("虚假的意思表示 民事法律行为无效 意思表示隐藏")
+    if any(keyword in text for keyword in ("怎么回答", "如何回答", "应当回答", "对方问", "盘问")):
+        additions.append("证人回答 应答策略 安全回答 盘问目的 风险 防守口径")
+    if any(keyword in text for keyword in ("总结", "概括", "结果", "重点", "建议", "复盘")):
+        additions.append("训练过程总结 最终庭前建议 迭代记录 风险点 行动清单")
+    return f"{text}\n{' '.join(additions)}" if additions else text
+
+
+def tokenize_qa_text(text: str) -> list[str]:
+    expanded = expand_qa_query(text).lower()
+    terms: list[str] = []
+    terms.extend(re.findall(r"[a-z0-9_]{2,}", expanded))
+    terms.extend(re.findall(r"\d+(?:\.\d+)?", expanded))
+    for segment in re.findall(r"[\u4e00-\u9fff]{2,}", expanded):
+        terms.extend(segment[index : index + 2] for index in range(len(segment) - 1))
+        terms.extend(segment[index : index + 3] for index in range(len(segment) - 2))
+    return terms
+
+
+def normalize_context_text(text: str, *, limit: int | None = None) -> str:
+    normalized = re.sub(r"\s+", " ", text).strip()
+    if limit is not None and len(normalized) > limit:
+        return normalized[:limit].rstrip() + "..."
+    return normalized
+
+
+def qa_doc_id(value: str) -> str:
+    cleaned = str(value).replace(":", "_").replace("]", "_").strip()
+    return cleaned or "doc"
+
+
+def make_qa_chunk_record(
+    *,
+    chunk_id: str,
+    source_label: str,
+    source_title: str,
+    source_path: str,
+    text: str,
+) -> dict[str, Any]:
+    searchable_text = f"{source_label}\n{source_title}\n{text}"
+    return {
+        "chunk_id": chunk_id,
+        "source_label": source_label,
+        "source_title": source_title,
+        "source_path": source_path,
+        "text": text.strip(),
+        "terms": dict(Counter(tokenize_qa_text(searchable_text))),
+    }
+
+
+def append_qa_document_chunks(
+    records: list[dict[str, Any]],
+    *,
+    id_prefix: str,
+    doc_id: str,
+    source_label: str,
+    source_title: str,
+    source_path: str,
+    text: str,
+    max_chars: int = 1200,
+    overlap: int = 150,
+) -> None:
+    if not text.strip():
+        return
+    safe_doc_id = qa_doc_id(doc_id)
+    for index, chunk_text in enumerate(_split_text_into_chunks(text, max_chars=max_chars, overlap=overlap), start=1):
+        if len(re.sub(r"\s+", "", chunk_text)) < 20:
+            continue
+        records.append(
+            make_qa_chunk_record(
+                chunk_id=f"{id_prefix}:{safe_doc_id}:{index:04d}",
+                source_label=source_label,
+                source_title=source_title,
+                source_path=source_path,
+                text=chunk_text,
+            )
+        )
+
+
+def json_text_for_qa(value: Any) -> str:
+    try:
+        return json.dumps(value, ensure_ascii=False, indent=2)
+    except TypeError:
+        return as_text(value)
+
+
+def format_public_rounds_for_qa(payload: dict[str, Any]) -> str:
+    sections: list[str] = []
+    for round_record in payload.get("public_rounds", []):
+        round_no = round_record.get("round", "-")
+        sections.append(
+            f"第 {round_no} 轮：{round_record.get('learning_side', '')}训练，"
+            f"{round_record.get('frozen_side', '')}策略冻结。"
+        )
+        for segment in round_record.get("segments", []):
+            sections.append(
+                f"第 {round_no} 轮环节 {segment.get('segment', '-')}: "
+                f"{segment.get('questioner', '')}盘问{segment.get('witness', '')}"
+            )
+            for turn in segment.get("turns", []):
+                question = turn.get("question", {})
+                answer = turn.get("answer", {})
+                sections.append(
+                    "\n".join(
+                        part
+                        for part in (
+                            f"问答 {turn.get('turn', '-')}",
+                            f"律师问题：{as_text(question.get('question'))}",
+                            f"盘问目的：{as_text(question.get('purpose'))}",
+                            f"预期压力：{as_text(question.get('expected_pressure'))}",
+                            f"证人回答：{as_text(answer.get('answer'))}",
+                            f"防守动作：{as_text(answer.get('defense_move'))}",
+                            f"让步：{as_text(answer.get('concessions'))}",
+                            f"暴露风险：{as_text(answer.get('risks_created'))}",
+                        )
+                        if part.strip()
+                    )
+                )
+            tribunal_review = segment.get("tribunal_review")
+            if isinstance(tribunal_review, dict):
+                sections.append(f"仲裁庭点评：\n{as_text(tribunal_review)}")
+        closing_statements = round_record.get("closing_statements", [])
+        if closing_statements:
+            sections.append(f"最后陈述：\n{as_text(closing_statements)}")
+        critic_review = round_record.get("critic_review")
+        if isinstance(critic_review, dict):
+            sections.append(f"点评 Agent 总评：\n{as_text(critic_review)}")
+    return "\n\n".join(sections)
+
+
+def format_training_updates_for_qa(payload: dict[str, Any]) -> str:
+    sections: list[str] = []
+    for update in payload.get("training_updates", []):
+        sections.append(
+            "\n".join(
+                part
+                for part in (
+                    f"第 {update.get('round', '-')} 轮训练方：{update.get('learning_side', '')}",
+                    f"点评 Agent：\n{as_text(update.get('critic_review'))}",
+                    f"训练方复盘：\n{as_text(update.get('reflection'))}",
+                    f"更新后策略：\n{as_text(update.get('updated_strategy'))}",
+                )
+                if part.strip()
+            )
+        )
+    return "\n\n".join(sections)
+
+
+def format_selected_side_materials_for_qa(payload: dict[str, Any]) -> str:
+    sections: list[str] = []
+    if payload.get("selected_initial_strategy"):
+        sections.append(f"初始策略：\n{json_text_for_qa(payload.get('selected_initial_strategy'))}")
+    if payload.get("selected_strategy_versions"):
+        sections.append(f"策略版本：\n{json_text_for_qa(payload.get('selected_strategy_versions'))}")
+    if payload.get("selected_reflections"):
+        sections.append(f"选定阵营复盘：\n{json_text_for_qa(payload.get('selected_reflections'))}")
+    return "\n\n".join(sections)
+
+
+def build_result_qa_chunk_records(result: dict[str, Any]) -> list[dict[str, Any]]:
+    payload = result.get("payload", {})
+    metadata = result.get("metadata", {})
+    result_path = str(result.get("log_path") or result.get("case_output_dir") or result.get("case_id") or "")
+    records: list[dict[str, Any]] = []
+
+    overview = "\n".join(
+        part
+        for part in (
+            f"案件：{result.get('case_id', payload.get('case_id', '-'))}",
+            f"训练阵营：{payload.get('selected_party', '-')}",
+            f"轮数：{payload.get('rounds', '-')}",
+            f"每环节问答组数：{payload.get('qa_pairs_per_segment', '-')}",
+            f"策略交替块大小：{payload.get('strategy_block_size', '-')}",
+            f"案件文件：{payload.get('case_doc') or metadata.get('case_doc') or '-'}",
+            f"规则文档：{as_text(metadata.get('effective_rules'))}",
+        )
+        if part.strip()
+    )
+    append_qa_document_chunks(
+        records,
+        id_prefix="result",
+        doc_id="overview",
+        source_label=RESULT_RAG_SOURCE_LABEL,
+        source_title="结果概览",
+        source_path=result_path,
+        text=overview,
+    )
+
+    case_doc_value = payload.get("case_doc") or metadata.get("case_doc")
+    if isinstance(case_doc_value, str) and case_doc_value.strip():
+        case_doc_path = Path(case_doc_value)
+        try:
+            if case_doc_path.exists():
+                append_qa_document_chunks(
+                    records,
+                    id_prefix="result",
+                    doc_id="case_file",
+                    source_label=RESULT_RAG_SOURCE_LABEL,
+                    source_title="原始案件材料",
+                    source_path=compact_filename(case_doc_path),
+                    text=read_text(case_doc_path),
+                )
+        except OSError:
+            pass
+
+    if result.get("advice"):
+        append_qa_document_chunks(
+            records,
+            id_prefix="result",
+            doc_id="advice",
+            source_label=RESULT_RAG_SOURCE_LABEL,
+            source_title="最终庭前建议",
+            source_path=compact_filename(result["advice_path"]),
+            text=result["advice"],
+        )
+    if result.get("summary"):
+        append_qa_document_chunks(
+            records,
+            id_prefix="result",
+            doc_id="summary",
+            source_label=RESULT_RAG_SOURCE_LABEL,
+            source_title="训练过程总结",
+            source_path=compact_filename(result["summary_path"]),
+            text=result["summary"],
+        )
+
+    transcript = format_public_rounds_for_qa(payload)
+    append_qa_document_chunks(
+        records,
+        id_prefix="result",
+        doc_id="public_rounds",
+        source_label=RESULT_RAG_SOURCE_LABEL,
+        source_title="模拟问答记录",
+        source_path=result_path,
+        text=transcript,
+    )
+
+    training_updates = format_training_updates_for_qa(payload)
+    append_qa_document_chunks(
+        records,
+        id_prefix="result",
+        doc_id="training_updates",
+        source_label=RESULT_RAG_SOURCE_LABEL,
+        source_title="训练复盘与策略迭代",
+        source_path=result_path,
+        text=training_updates,
+    )
+
+    selected_side_materials = format_selected_side_materials_for_qa(payload)
+    append_qa_document_chunks(
+        records,
+        id_prefix="result",
+        doc_id="selected_side_materials",
+        source_label=RESULT_RAG_SOURCE_LABEL,
+        source_title="选定阵营私有策略材料",
+        source_path=result_path,
+        text=selected_side_materials,
+    )
+    return records
+
+
+def update_result_chunk_sources(result_chunks: list[dict[str, Any]]) -> None:
+    st.session_state["qa_result_chunk_sources"] = {
+        chunk["chunk_id"]: (
+            f"来源：{chunk.get('source_title', '')}\n"
+            f"路径：{chunk.get('source_path', '')}\n\n"
+            f"{chunk.get('text', '')}"
+        )
+        for chunk in result_chunks
+    }
+
+
+def selected_rule_paths_for_result(result: dict[str, Any]) -> list[Path]:
+    rule_docs = list_rule_docs()
+    metadata = result.get("metadata", {})
+    effective_rules = metadata.get("effective_rules")
+    if isinstance(effective_rules, list) and effective_rules:
+        selected_names = {str(name) for name in effective_rules}
+        selected = [path for path in rule_docs if path.name in selected_names]
+        if selected:
+            selected_set = {path.name for path in selected}
+            return selected + [path for path in rule_docs if path.name not in selected_set]
+    return rule_docs
+
+
+def external_case_paths() -> list[Path]:
+    if not CASE_RAG_DIR.exists():
+        return []
+    return sorted(path for path in CASE_RAG_DIR.glob("case*/text.md") if path.is_file())
+
+
+def file_signatures(paths: list[Path]) -> tuple[tuple[str, float, int], ...]:
+    signatures: list[tuple[str, float, int]] = []
+    for path in paths:
+        try:
+            stat = path.stat()
+        except OSError:
+            continue
+        signatures.append((str(path), stat.st_mtime, stat.st_size))
+    return tuple(signatures)
+
+
+@st.cache_data(show_spinner=False)
+def build_external_qa_chunk_records_cached(
+    rule_path_values: tuple[str, ...],
+    case_path_values: tuple[str, ...],
+    signatures: tuple[tuple[str, float, int], ...],
+) -> list[dict[str, Any]]:
+    del signatures
+    records: list[dict[str, Any]] = []
+    for path_value in rule_path_values:
+        path = Path(path_value)
+        try:
+            text = _read_knowledge_text(path)
+        except Exception:
+            continue
+        append_qa_document_chunks(
+            records,
+            id_prefix="law",
+            doc_id=path.stem,
+            source_label=LAW_RAG_SOURCE_LABEL,
+            source_title=path.stem,
+            source_path=compact_filename(path),
+            text=text,
+        )
+    for path_value in case_path_values:
+        path = Path(path_value)
+        try:
+            text = _read_knowledge_text(path)
+        except Exception:
+            continue
+        case_id = path.parent.name if path.name == "text.md" else path.stem
+        append_qa_document_chunks(
+            records,
+            id_prefix="case",
+            doc_id=case_id,
+            source_label=CASE_RAG_SOURCE_LABEL,
+            source_title=f"公开案例 {case_id}",
+            source_path=compact_filename(path),
+            text=text,
+        )
+    return records
+
+
+def build_external_qa_chunk_records(result: dict[str, Any]) -> list[dict[str, Any]]:
+    rule_paths = selected_rule_paths_for_result(result)
+    case_paths = external_case_paths()
+    paths = rule_paths + case_paths
+    return build_external_qa_chunk_records_cached(
+        tuple(str(path) for path in rule_paths),
+        tuple(str(path) for path in case_paths),
+        file_signatures(paths),
+    )
+
+
+def search_qa_chunks(chunks: list[dict[str, Any]], query: str, *, top_k: int) -> list[tuple[float, dict[str, Any]]]:
+    if not chunks:
+        return []
+    query_terms = Counter(tokenize_qa_text(query))
+    if not query_terms:
+        return []
+
+    doc_freq: Counter[str] = Counter()
+    for chunk in chunks:
+        terms = chunk.get("terms", {})
+        if isinstance(terms, dict):
+            doc_freq.update(terms.keys())
+
+    total = max(len(chunks), 1)
+    idf = {term: math.log((1 + total) / (1 + freq)) + 1 for term, freq in doc_freq.items()}
+    scored: list[tuple[float, dict[str, Any]]] = []
+    for chunk in chunks:
+        terms = chunk.get("terms", {})
+        if not isinstance(terms, dict):
+            continue
+        score = 0.0
+        for term, query_tf in query_terms.items():
+            chunk_tf = terms.get(term, 0)
+            if chunk_tf:
+                score += (1 + math.log(chunk_tf)) * (1 + math.log(query_tf)) * idf.get(term, 1.0)
+        if score:
+            scored.append((score, chunk))
+    scored.sort(key=lambda item: item[0], reverse=True)
+    return scored[:top_k]
+
+
+def is_summary_question(question: str) -> bool:
+    return any(keyword in question for keyword in ("总结", "概括", "结果", "重点", "建议", "复盘"))
+
+
+def with_priority_result_chunks(
+    hits: list[tuple[float, dict[str, Any]]],
+    chunks: list[dict[str, Any]],
+    question: str,
+) -> list[tuple[float, dict[str, Any]]]:
+    if not is_summary_question(question):
+        return hits
+    priority_titles = ("结果概览", "最终庭前建议", "训练过程总结")
+    seen = {chunk["chunk_id"] for _, chunk in hits}
+    priority_hits: list[tuple[float, dict[str, Any]]] = []
+    for title in priority_titles:
+        for chunk in chunks:
+            if chunk.get("source_title") == title and chunk.get("chunk_id") not in seen:
+                priority_hits.append((math.inf, chunk))
+                seen.add(chunk["chunk_id"])
+                break
+    return priority_hits + hits
+
+
+def format_qa_context(hits: list[tuple[float, dict[str, Any]]], *, max_chars: int) -> str:
+    if not hits:
+        return "（未检索到高相关片段）"
+    blocks: list[str] = []
+    used_chars = 0
+    for score, chunk in hits:
+        available = max_chars - used_chars
+        if available <= 0:
+            break
+        excerpt = normalize_context_text(str(chunk.get("text", "")), limit=min(1200, max(300, available)))
+        score_text = "priority" if math.isinf(score) else f"{score:.2f}"
+        block = (
+            f"- [{chunk.get('source_label')}, {chunk.get('chunk_id')}] score={score_text} "
+            f"source={chunk.get('source_title')} ({chunk.get('source_path')})\n"
+            f"  原文：{excerpt}"
+        )
+        used_chars += len(block)
+        blocks.append(block)
+    return "\n".join(blocks)
+
+
+def qa_source_entries(
+    result_hits: list[tuple[float, dict[str, Any]]],
+    external_hits: list[tuple[float, dict[str, Any]]],
+) -> list[dict[str, Any]]:
+    entries: list[dict[str, Any]] = []
+    for score, chunk in result_hits + external_hits:
+        entries.append(
+            {
+                "score": None if math.isinf(score) else round(score, 2),
+                "source_label": chunk.get("source_label", ""),
+                "source_title": chunk.get("source_title", ""),
+                "source_path": chunk.get("source_path", ""),
+                "chunk_id": chunk.get("chunk_id", ""),
+                "excerpt": normalize_context_text(str(chunk.get("text", "")), limit=500),
+            }
+        )
+    return entries
+
+
+def build_qa_context_for_question(
+    *,
+    question: str,
+    result: dict[str, Any],
+    result_chunks: list[dict[str, Any]],
+    include_external: bool,
+    top_k: int,
+) -> tuple[str, str, list[dict[str, Any]]]:
+    result_hits = search_qa_chunks(result_chunks, question, top_k=top_k)
+    result_hits = with_priority_result_chunks(result_hits, result_chunks, question)
+
+    external_hits: list[tuple[float, dict[str, Any]]] = []
+    if include_external:
+        external_chunks = build_external_qa_chunk_records(result)
+        external_hits = search_qa_chunks(external_chunks, question, top_k=top_k)
+
+    result_context = format_qa_context(result_hits, max_chars=7500)
+    external_context = format_qa_context(external_hits, max_chars=5500) if include_external else "（未启用相关案例/法条检索）"
+    return result_context, external_context, qa_source_entries(result_hits, external_hits)
+
+
+def format_qa_history(messages: list[dict[str, Any]], *, limit: int = 4000) -> str:
+    if not messages:
+        return "（无）"
+    lines: list[str] = []
+    for message in messages[-6:]:
+        role = "用户" if message.get("role") == "user" else "Agent"
+        content = normalize_context_text(str(message.get("content", "")), limit=900)
+        lines.append(f"{role}：{content}")
+    history = "\n".join(lines)
+    return history if len(history) <= limit else history[-limit:]
+
+
+def offline_qa_response(sources: list[dict[str, Any]]) -> str:
+    if not sources:
+        return "未检测到 `OPENAI_API_KEY`，且本次没有检索到可用片段。请先设置模型密钥，或换一个更具体的问题。"
+    lines = [
+        "未检测到 `OPENAI_API_KEY`，暂时只展示本次检索到的高相关片段。设置密钥后，Agent 会基于这些片段生成完整回答。",
+    ]
+    for source in sources[:6]:
+        excerpt = source["excerpt"]
+        lines.append(
+            "\n".join(
+                (
+                    f"### {source['source_title']}",
+                    excerpt,
+                    f"> [{source['source_label']}, {source['chunk_id']}] 原文：{excerpt}",
+                )
+            )
+        )
+    return "\n\n".join(lines)
+
+
+def answer_qa_question(
+    *,
+    question: str,
+    result: dict[str, Any],
+    result_chunks: list[dict[str, Any]],
+    include_external: bool,
+    top_k: int,
+    model: str,
+    base_url: str,
+    temperature: float,
+    history: list[dict[str, Any]],
+) -> tuple[str, list[dict[str, Any]]]:
+    result_context, external_context, sources = build_qa_context_for_question(
+        question=question,
+        result=result,
+        result_chunks=result_chunks,
+        include_external=include_external,
+        top_k=top_k,
+    )
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        return offline_qa_response(sources), sources
+
+    try:
+        from openai import OpenAI
+    except ImportError as exc:
+        raise RuntimeError("缺少 openai 依赖，请先安装 requirements.txt。") from exc
+
+    client_kwargs: dict[str, str] = {"api_key": api_key}
+    if base_url.strip():
+        client_kwargs["base_url"] = base_url.strip()
+    client = OpenAI(**client_kwargs)
+
+    payload = result.get("payload", {})
+    system_prompt = (
+        "你是庭前仲裁模拟结果的智能问答 Agent。你必须优先依据本案模拟结果回答，"
+        "必要时结合相关案例和法条 RAG 片段。不要编造材料中不存在的事实、证据或法条。"
+        "如果材料不足，要明确说明还缺什么。回答应当直接、可执行，尤其是用户询问如何回答对方盘问时，"
+        "要给出可直接使用的中文回答口径、应避免承认的内容、可反问或转回的证据点。"
+        "如果使用了检索片段，必须在相关段落后用 Markdown 引用格式标明："
+        "> [来源, chunk_id] 原文：对应原文片段。chunk_id 必须完全来自检索片段，不得改写。"
+    )
+    user_prompt = f"""用户问题：
+{question}
+
+当前案件信息：
+- 案件：{result.get('case_id', payload.get('case_id', '-'))}
+- 训练阵营：{payload.get('selected_party', '-')}
+- 模拟轮数：{payload.get('rounds', '-')}
+
+此前问答历史：
+{format_qa_history(history)}
+
+本案模拟结果检索片段：
+{result_context}
+
+相关案例/法条检索片段：
+{external_context}
+
+请基于上述材料回答。若用户问题是“怎么回答/如何应对”，请按“建议回答口径 / 回答理由 / 风险提醒”组织。若用户问题是总结类，请按要点归纳。"""
+
+    completion = client.chat.completions.create(
+        model=model.strip() or os.getenv("OPENAI_MODEL", "qwen3.6-flash"),
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        temperature=temperature,
+    )
+    content = completion.choices[0].message.content
+    if not content:
+        raise RuntimeError("模型返回了空内容。")
+    return content.strip(), sources
+
+
+def render_qa_sources(sources: list[dict[str, Any]]) -> None:
+    if not sources:
+        st.caption("本次没有检索到片段。")
+        return
+    for source in sources:
+        score = "优先片段" if source.get("score") is None else f"score {source['score']}"
+        st.markdown(f"**{source['source_label']} · {source['source_title']}**  `{source['chunk_id']}`")
+        st.caption(f"{score} · {source['source_path']}")
+        st.write(source["excerpt"])
+
+
+def render_result_qa_agent(
+    result: dict[str, Any],
+    *,
+    model: str,
+    base_url: str,
+    temperature: float,
+) -> None:
+    result_chunks = build_result_qa_chunk_records(result)
+    update_result_chunk_sources(result_chunks)
+
+    messages_key = qa_result_widget_key(result, "messages")
+    include_external_key = qa_result_widget_key(result, "include-external")
+    top_k_key = qa_result_widget_key(result, "top-k")
+    show_sources_key = qa_result_widget_key(result, "show-sources")
+
+    if messages_key not in st.session_state:
+        st.session_state[messages_key] = []
+
+    controls_col1, controls_col2, controls_col3 = st.columns([1.2, 1, 1])
+    with controls_col1:
+        include_external = st.toggle("检索相关案例/法条", value=True, key=include_external_key)
+    with controls_col2:
+        top_k = st.slider("每类检索片段", min_value=2, max_value=8, value=5, step=1, key=top_k_key)
+    with controls_col3:
+        show_sources = st.toggle("显示检索片段", value=False, key=show_sources_key)
+
+    if not os.getenv("OPENAI_API_KEY"):
+        st.caption("当前未检测到 OPENAI_API_KEY，Agent 会先以离线方式展示检索片段。")
+
+    if st.button("清空问答", key=qa_result_widget_key(result, "clear")):
+        st.session_state[messages_key] = []
+        st.rerun()
+
+    messages = st.session_state[messages_key]
+    if not messages:
+        st.caption("可以询问：如果对方追问某个事实应如何回答，或让 Agent 总结本次模拟结果。")
+
+    for message in messages:
+        with st.chat_message(message.get("role", "assistant")):
+            if message.get("role") == "assistant":
+                processed = render_markdown_with_rag_cards(str(message.get("content", "")))
+                st.markdown(processed, unsafe_allow_html=True)
+                if show_sources:
+                    with st.expander("本次检索片段"):
+                        render_qa_sources(message.get("sources", []))
+            else:
+                st.markdown(str(message.get("content", "")))
+
+    prompt = st.chat_input(
+        "询问本案结果，例如：如果对方问我某个事实，我应该怎么回答？",
+        key=qa_result_widget_key(result, "input"),
+    )
+    if not prompt:
+        return
+
+    messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    with st.chat_message("assistant"):
+        with st.spinner("Agent 正在检索并生成回答..."):
+            try:
+                answer, sources = answer_qa_question(
+                    question=prompt,
+                    result=result,
+                    result_chunks=result_chunks,
+                    include_external=include_external,
+                    top_k=int(top_k),
+                    model=model,
+                    base_url=base_url,
+                    temperature=temperature,
+                    history=messages[:-1],
+                )
+            except Exception as exc:
+                answer = f"问答 Agent 调用失败：{exc}"
+                sources = []
+        processed = render_markdown_with_rag_cards(answer)
+        st.markdown(processed, unsafe_allow_html=True)
+        if show_sources:
+            with st.expander("本次检索片段"):
+                render_qa_sources(sources)
+    messages.append({"role": "assistant", "content": answer, "sources": sources})
 
 
 def render_bubble(speaker: str, content: str, meta: str = "", tone: str = "neutral") -> None:
@@ -965,7 +1689,7 @@ def build_training_dataframe(payload: dict[str, Any]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def render_result(result: dict[str, Any]) -> None:
+def render_result(result: dict[str, Any], *, model: str, base_url: str, temperature: float) -> None:
     payload = result["payload"]
     result_key = str(result.get("run_dir", result["case_output_dir"]))
     metadata = result.get("metadata", {})
@@ -978,7 +1702,7 @@ def render_result(result: dict[str, Any]) -> None:
         mode = "离线演示" if metadata.get("dry_run") else "模型运行"
         st.caption(f"记录目录：{compact_filename(result['run_dir'])} · {mode}")
 
-    tab_chat, tab_advice, tab_training, tab_files = st.tabs(["模拟对话", "最终建议", "迭代记录", "输出文件"])
+    tab_chat, tab_advice, tab_training, tab_qa, tab_files = st.tabs(["模拟对话", "最终建议", "迭代记录", "智能问答", "输出文件"])
 
     with tab_chat:
         render_chat(payload)
@@ -1003,6 +1727,9 @@ def render_result(result: dict[str, Any]) -> None:
         with st.expander("Markdown 总结"):
             processed_summary = render_markdown_with_rag_cards(result["summary"])
             st.markdown(processed_summary, unsafe_allow_html=True)
+
+    with tab_qa:
+        render_result_qa_agent(result, model=model, base_url=base_url, temperature=temperature)
 
     with tab_files:
         st.write(compact_filename(result["case_output_dir"]))
@@ -1173,6 +1900,10 @@ def add_styles() -> None:
         .rag-card-law {
             border-left: 4px solid #059669;
             background: #ecfdf5;
+        }
+        .rag-card-result {
+            border-left: 4px solid #b45309;
+            background: #fff7ed;
         }
         .rag-card-default {
             border-left: 4px solid #6366f1;
@@ -1370,6 +2101,11 @@ def main() -> None:
             "qa_pairs": int(qa_pairs),
             "strategy_block_size": int(strategy_block_size),
             "dry_run": dry_run,
+            "skip_tribunal": skip_tribunal,
+            "disable_rag": disable_rag,
+            "model": model,
+            "base_url": base_url,
+            "temperature": temperature,
             "events_path": str(events_path),
         }
         (run_dir / "run_metadata.json").write_text(
@@ -1411,7 +2147,7 @@ def main() -> None:
     if "last_result" in st.session_state:
         if st.session_state.get("active_result_label"):
             st.info(f"当前展示：{st.session_state['active_result_label']}")
-        render_result(st.session_state["last_result"])
+        render_result(st.session_state["last_result"], model=model, base_url=base_url, temperature=temperature)
 
 
 if __name__ == "__main__":
