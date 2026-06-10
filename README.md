@@ -29,12 +29,25 @@
 - 支持“交替冻结/学习”的训练方式：一方策略先固定对手、连续更新自己若干轮；然后自己策略冻结，让对手连续更新若干轮。这样可以模拟“我变强、对手再变强、我继续变强”的对抗式迭代。
 - Agent可以学习
 
-## Quick Start
+## Usage
+### Using Docker
 ```bash
-$env:OPENAI_API_KEY="sk-xxxxxxxx"
-$env:OPENAI_BASE_URL="https://api.deepseek.com"
-$env:OPENAI_MODEL="deepseek-v4-flash"
+chmod +x docker-build-run.sh
 
+# 使用 DeepSeek API
+OPENAI_API_KEY=sk-xxxxxxxx 
+OPENAI_BASE_URL=https://api.deepseek.com \
+OPENAI_MODEL=deepseek-v4-flash \
+./docker-build-run.sh
+```
+
+### 本地开发运行
+```bash
+export OPENAI_API_KEY="sk-xxxxxxxx"
+export OPENAI_BASE_URL="https://api.deepseek.com"
+export OPENAI_MODEL="deepseek-v4-flash"
+
+pip install -r requirements.txt
 streamlit run streamlit_app.py
 
 ```

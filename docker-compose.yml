@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  court-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: court-arbitration-simulator:latest
+    container_name: court-arbitration-simulator
+    ports:
+      - "8501:8501"
+    environment:
+      # 请替换为你的 API Key
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-sk-xxxxxxxx}
+      # 如需使用兼容 OpenAI 的第三方 API，请修改以下两项
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-qwen3.6-flash}
+    volumes:
+      # 持久化模拟结果到本地
+      - ./outputs/streamlit_runs:/app/outputs/streamlit_runs
+    restart: unless-stopped
